@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>狼人殺遊戲</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Microsoft YaHei', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .header {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header h1 {
+      color: #333;
+      font-size: 24px;
+    }
+    .player-info {
+      color: #666;
+      font-size: 14px;
+    }
+    .logout-btn {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.3s;
+    }
+    .logout-btn:hover {
+      background: #c0392b;
+    }
+    .content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 768px) {
+      .content {
+        grid-template-columns: 1fr;
+      }
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .card h2 {
+      color: #333;
+      margin-bottom: 15px;
+      font-size: 18px;
+      border-bottom: 2px solid #667eea;
+      padding-bottom: 10px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      color: #555;
+      font-weight: 500;
+      font-size: 14px;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    button {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+    }
+    .btn-success {
+      background: #27ae60;
+      color: white;
+    }
+    .btn-success:hover {
+      background: #229954;
+      transform: translateY(-2px);
+    }
+    .btn-secondary {
+      background: #95a5a6;
+      color: white;
+    }
+    .btn-secondary:hover {
+      background: #7f8c8d;
+    }
+    .room-list {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .room-item {
+      background: #f8f9fa;
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-left: 4px solid #667eea;
+    }
+    .room-info {
+      flex: 1;
+    }
+    .room-id {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 4px;
+    }
+    .room-detail {
+      font-size: 12px;
+      color: #666;
+    }
+    .room-join-btn {
+      background: #27ae60;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background 0.3s;
+    }
+    .room-join-btn:hover {
+      background: #229954;
+    }
+    .game-area {
+      display: none;
+    }
+    .game-area.active {
+      display: block;
+    }
+    .lobby-area {
+      display: block;
+    }
+    .lobby-area.hidden {
+      display: none;
+    }
+    .error-msg {
+      color: #e74c3c;
+      font-size: 13px;
+      margin-top: 10px;
+      padding: 10px;
+      background: #fadbd8;
+      border-radius: 4px;
+      display: none;
+    }
+    .error-msg.show {
+      display: block;
+    }
+    .player-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .player-card {
+      background: #f8f9fa;
+      padding: 12px;
+      border-radius: 6px;
+      text-align: center;
+      border: 2px solid #ddd;
+    }
+    .player-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      margin: 0 auto 8px;
+      background: #ddd;
+      object-fit: cover;
+    }
+    .player-name {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+    .player-status {
+      font-size: 12px;
+      color: #666;
+    }
+    .player-status.alive {
+      color: #27ae60;
+    }
+    .player-status.dead {
+      color: #e74c3c;
+    }
+    .chat-box {
+      background: #f8f9fa;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      height: 200px;
+      overflow-y: auto;
+      padding: 10px;
+      margin-bottom: 10px;
+      font-size: 13px;
+    }
+    .chat-message {
+      margin-bottom: 8px;
+      padding: 6px;
+      background: white;
+      border-radius: 4px;
+    }
+    .chat-system {
+      color: #e74c3c;
+      font-style: italic;
+    }
+    .chat-player {
+      color: #667eea;
+      font-weight: 600;
+    }
+    .action-buttons {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+      margin-top: 15px;
+    }
+    .action-btn {
+      padding: 10px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 0.3s;
+    }
+    .action-btn:hover:not(:disabled) {
+      background: #5568d3;
+    }
+    .action-btn:disabled {
+      background: #bdc3c7;
+      cursor: not-allowed;
+    }
+    .divider {
+      border: none;
+      border-top: 1px solid #ddd;
+      margin: 15px 0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- 頁頭 -->
+  <div class="header">
+    <h1>🐺 線上狼人殺</h1>
+    <div>
+      <span class="player-info">玩家: <strong id="playerName"></strong></span>
+      <button class="logout-btn" onclick="logout()">登出</button>
+    </div>
+  </div>
+
+  <!-- 大廳區域 -->
+  <div class="lobby-area" id="lobbyArea">
+    <div class="content">
+      <!-- 建立房間 -->
+      <div class="card">
+        <h2>建立房間</h2>
+        <div class="form-group">
+          <label>房號（可選）</label>
+          <input type="text" id="customRoomId" placeholder="留空自動生成">
+        </div>
+        <button class="btn-primary" onclick="createRoom()" style="width: 100%;">建立房間</button>
+        <div class="error-msg" id="createError"></div>
+      </div>
+
+      <!-- 加入房間 -->
+      <div class="card">
+        <h2>加入房間</h2>
+        <div class="form-group">
+          <label>房號</label>
+          <input type="text" id="joinRoomId" placeholder="輸入房號">
+        </div>
+        <button class="btn-success" onclick="joinRoom()" style="width: 100%;">加入房間</button>
+        <div class="error-msg" id="joinError"></div>
+      </div>
+    </div>
+
+    <!-- 房間列表 -->
+    <div class="card">
+      <h2>房間列表</h2>
+      <button class="btn-secondary" onclick="refreshRoomList()" style="width: 100%; margin-bottom: 15px;">刷新列表</button>
+      <div class="room-list" id="roomList">
+        <div style="text-align: center; color: #999; padding: 20px;">載入中...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 遊戲區域 -->
+  <div class="game-area" id="gameArea">
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h2 style="margin: 0;">房間 <span id="roomId"></span> | 你的角色: <span id="myRole" style="color: #e74c3c;">?</span></h2>
+        <button class="logout-btn" onclick="leaveRoom()">離開房間</button>
+      </div>
+      
+      <hr class="divider">
+
+      <!-- 玩家列表 -->
+      <h3 style="color: #333; margin-bottom: 10px;">玩家列表</h3>
+      <div class="player-list" id="playerList"></div>
+
+      <hr class="divider">
+
+      <!-- 夜晚行動 -->
+      <div id="nightActionDiv" style="display: none;">
+        <h3 style="color: #333; margin-bottom: 10px;">夜晚行動</h3>
+        <div id="nightActionInfo" style="margin-bottom: 10px; color: #667eea; font-weight: 600;"></div>
+        <div id="nightTargets" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; margin-bottom: 15px;"></div>
+        <hr class="divider">
+      </div>
+
+      <!-- 投票 -->
+      <div id="voteDiv" style="display: none;">
+        <h3 style="color: #333; margin-bottom: 10px;">白天投票</h3>
+        <div id="voteTargets" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; margin-bottom: 10px;"></div>
+        <button class="btn-primary" onclick="submitMyVote()" style="width: 100%; margin-bottom: 15px;">提交投票</button>
+        <hr class="divider">
+      </div>
+
+      <!-- 房主控制 -->
+      <div id="hostControlDiv" style="display: none;">
+        <h3 style="color: #333; margin-bottom: 10px;">房主控制</h3>
+        <div class="action-buttons">
+          <button class="action-btn" onclick="assignRoles()">分配身分</button>
+          <button class="action-btn" id="resolveNightBtn" onclick="resolveNight()" style="display: none;">結束夜晚</button>
+          <button class="action-btn" id="resolveVoteBtn" onclick="resolveVotes()" style="display: none;">結束投票</button>
+        </div>
+        <hr class="divider">
+      </div>
+
+      <!-- 聊天室 -->
+      <h3 style="color: #333; margin-bottom: 10px;">聊天室</h3>
+      <div class="chat-box" id="chatBox"></div>
+      <div style="display: flex; gap: 10px;">
+        <input type="text" id="chatInput" placeholder="輸入訊息..." style="flex: 1;">
+        <button class="btn-primary" onclick="sendChat()" style="width: 100px;">送出</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let state = {
+  roomId: null,
+  playerId: null,
+  myVote: null,
+  phase: null
+};
+let myRole = null;
+let pollTimer = null;
+
+// 初始化
+window.addEventListener('load', () => {
+  const playId = localStorage.getItem('playId');
+  const playerName = localStorage.getItem('playerName');
+  
+  if (!playId) {
+    window.location.href = '?page=login';
+    return;
+  }
+  
+  document.getElementById('playerName').textContent = playerName || '玩家';
+  refreshRoomList();
+  
+  // 定時刷新房間列表
+  setInterval(refreshRoomList, 5000);
+});
+
+function logout() {
+  localStorage.removeItem('playId');
+  localStorage.removeItem('playerName');
+  window.location.href = '?page=login';
+}
+
+function createRoom() {
+  const customRoomId = document.getElementById('customRoomId').value.trim();
+  const errorDiv = document.getElementById('createError');
+  errorDiv.classList.remove('show');
+  
+  google.script.run
+    .withSuccessHandler((res) => {
+      if (res.error) {
+        errorDiv.textContent = res.error;
+        errorDiv.classList.add('show');
+      } else {
+        enterGame(res.roomId, res.playerId);
+      }
+    })
+    .withFailureHandler((err) => {
+      errorDiv.textContent = '伺服器錯誤';
+      errorDiv.classList.add('show');
+    })
+    .createRoom(localStorage.getItem('playId'), '', customRoomId || undefined);
+}
+
+function joinRoom() {
+  const roomId = document.getElementById('joinRoomId').value.trim().toUpperCase();
+  const errorDiv = document.getElementById('joinError');
+  errorDiv.classList.remove('show');
+  
+  if (!roomId) {
+    errorDiv.textContent = '請輸入房號';
+    errorDiv.classList.add('show');
+    return;
+  }
+  
+  google.script.run
+    .withSuccessHandler((res) => {
+      if (res.error) {
+        errorDiv.textContent = res.error;
+        errorDiv.classList.add('show');
+      } else {
+        enterGame(roomId, res.playerId);
+      }
+    })
+    .withFailureHandler((err) => {
+      errorDiv.textContent = '伺服器錯誤';
+      errorDiv.classList.add('show');
+    })
+    .joinRoom(roomId, localStorage.getItem('playId'), '');
+}
+
+function refreshRoomList() {
+  google.script.run
+    .withSuccessHandler((res) => {
+      const roomList = document.getElementById('roomList');
+      roomList.innerHTML = '';
+      
+      if (!res || res.length === 0) {
+        roomList.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">目前沒有房間</div>';
+        return;
+      }
+      
+      res.forEach(room => {
+        const div = document.createElement('div');
+        div.className = 'room-item';
+        div.innerHTML = `
+          <div class="room-info">
+            <div class="room-id">房號: ${room.id}</div>
+            <div class="room-detail">房主: ${room.hostName} | 玩家: ${room.playerCount}</div>
+          </div>
+          <button class="room-join-btn" onclick="document.getElementById('joinRoomId').value='${room.id}'; joinRoom();">加入</button>
+        `;
+        roomList.appendChild(div);
+      });
+    })
+    .listRooms();
+}
+
+function enterGame(roomId, playerId) {
+  state.roomId = roomId;
+  state.playerId = playerId;
+  
+  document.getElementById('lobbyArea').classList.add('hidden');
+  document.getElementById('gameArea').classList.add('active');
+  document.getElementById('roomId').textContent = roomId;
+  
+  pollRoom();
+  clearInterval(pollTimer);
+  pollTimer = setInterval(pollRoom, 1500);
+}
+
+function pollRoom() {
+  if (!state.roomId || !state.playerId) return;
+  
+  google.script.run
+    .withSuccessHandler((res) => {
+      if (res.error) return;
+      
+      state.phase = res.phase;
+      myRole = res.players[state.playerId]?.role || null;
+      document.getElementById('myRole').textContent = myRole || '?';
+      
+      // 更新玩家列表
+      const playerList = document.getElementById('playerList');
+      playerList.innerHTML = '';
+      Object.values(res.players || {}).forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'player-card';
+        div.innerHTML = `
+          <img src="${p.avatar || 'https://via.placeholder.com/50'}" class="player-avatar" onerror="this.src='https://via.placeholder.com/50'">
+          <div class="player-name">${p.name}</div>
+          <div class="player-status ${p.alive ? 'alive' : 'dead'}">
+            ${p.alive ? '🟢 存活' : '⚫ 死亡'} ${p.role ? `(${p.role})` : ''}
+          </div>
+        `;
+        playerList.appendChild(div);
+      });
+      
+      // 更新聊天室
+      const chatBox = document.getElementById('chatBox');
+      chatBox.innerHTML = '';
+      (res.chat || []).forEach(msg => {
+        const div = document.createElement('div');
+        div.className = 'chat-message';
+        if (msg.system) {
+          div.classList.add('chat-system');
+          div.textContent = `[系統] ${msg.text}`;
+        } else {
+          div.innerHTML = `<span class="chat-player">${msg.name}:</span> ${msg.text}`;
+        }
+        chatBox.appendChild(div);
+      });
+      chatBox.scrollTop = chatBox.scrollHeight;
+      
+      // 檢查是否是房主
+      const isHost = res.hostId === state.playerId;
+      document.getElementById('hostControlDiv').style.display = isHost ? 'block' : 'none';
+      
+      // 夜晚行動
+      if ((res.phase === 'rolesAssigned' || res.phase === 'night') && res.players[state.playerId]?.alive) {
+        document.getElementById('nightActionDiv').style.display = 'block';
+        const nightInfo = document.getElementById('nightActionInfo');
+        const nightTargets = document.getElementById('nightTargets');
+        nightTargets.innerHTML = '';
+        
+        if (myRole === 'werewolf') {
+          nightInfo.textContent = '🐺 狼人：選擇攻擊目標';
+          Object.values(res.players).filter(p => p.alive && p.id !== state.playerId).forEach(p => {
+            const btn = document.createElement('button');
+            btn.className = 'action-btn';
+            btn.textContent = `攻擊 ${p.name}`;
+            btn.onclick = () => submitNightAction('kill', p.id);
+            nightTargets.appendChild(btn);
+          });
+        } else if (myRole === 'seer') {
+          nightInfo.textContent = '🔮 預言家：選擇查驗目標';
+          Object.values(res.players).filter(p => p.alive && p.id !== state.playerId).forEach(p => {
+            const btn = document.createElement('button');
+            btn.className = 'action-btn';
+            btn.textContent = `查驗 ${p.name}`;
+            btn.onclick = () => submitNightAction('check', p.id);
+            nightTargets.appendChild(btn);
+          });
+        } else if (myRole === 'doctor') {
+          nightInfo.textContent = '⚕️ 醫生：選擇守護目標';
+          Object.values(res.players).filter(p => p.alive).forEach(p => {
+            const btn = document.createElement('button');
+            btn.className = 'action-btn';
+            btn.textContent = `守護 ${p.name}`;
+            btn.onclick = () => submitNightAction('save', p.id);
+            nightTargets.appendChild(btn);
+          });
+        } else {
+          nightInfo.textContent = '😴 平民：無夜晚行動';
+        }
+      } else {
+        document.getElementById('nightActionDiv').style.display = 'none';
+      }
+      
+      // 投票
+      if (res.phase === 'day' && res.players[state.playerId]?.alive) {
+        document.getElementById('voteDiv').style.display = 'block';
+        const voteTargets = document.getElementById('voteTargets');
+        voteTargets.innerHTML = '';
+        Object.values(res.players).filter(p => p.alive && p.id !== state.playerId).forEach(p => {
+          const btn = document.createElement('button');
+          btn.className = 'action-btn';
+          btn.textContent = `投票 ${p.name}`;
+          btn.style.background = state.myVote === p.id ? '#e74c3c' : '#667eea';
+          btn.onclick = () => {
+            state.myVote = p.id;
+            pollRoom();
+          };
+          voteTargets.appendChild(btn);
+        });
+      } else {
+        document.getElementById('voteDiv').style.display = 'none';
+      }
+    })
+    .getRoomState(state.roomId, state.playerId);
+}
+
+function submitNightAction(type, targetId) {
+  google.script.run
+    .withSuccessHandler(() => pollRoom())
+    .submitNightAction(state.roomId, state.playerId, { type, targetId });
+}
+
+function submitMyVote() {
+  if (!state.myVote) {
+    alert('請選擇投票對象');
+    return;
+  }
+  google.script.run
+    .withSuccessHandler(() => pollRoom())
+    .submitVote(state.roomId, state.playerId, state.myVote);
+}
+
+function assignRoles() {
+  google.script.run
+    .withSuccessHandler(() => pollRoom())
+    .assignRoles(state.roomId, state.playerId);
+}
+
+function resolveNight() {
+  google.script.run
+    .withSuccessHandler(() => pollRoom())
+    .resolveNight(state.roomId, state.playerId);
+}
+
+function resolveVotes() {
+  google.script.run
+    .withSuccessHandler(() => pollRoom())
+    .resolveVotes(state.roomId, state.playerId);
+}
+
+function sendChat() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  
+  google.script.run
+    .withSuccessHandler(() => {
+      input.value = '';
+      pollRoom();
+    })
+    .postChat(state.roomId, state.playerId, text);
+}
+
+function leaveRoom() {
+  if (!confirm('確定要離開房間嗎？')) return;
+  
+  google.script.run
+    .withSuccessHandler(() => {
+      state = { roomId: null, playerId: null, myVote: null, phase: null };
+      clearInterval(pollTimer);
+      document.getElementById('gameArea').classList.remove('active');
+      document.getElementById('lobbyArea').classList.remove('hidden');
+      refreshRoomList();
+    })
+    .leaveRoom(state.roomId, state.playerId);
+}
+</script>
+
+</body>
+</html>

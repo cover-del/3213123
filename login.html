@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>狼人殺帳號登入</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Microsoft YaHei', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      width: 100%;
+      max-width: 400px;
+      padding: 40px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+      font-size: 28px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #555;
+      font-weight: 500;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+    input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 30px;
+    }
+    button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .btn-login {
+      background: #667eea;
+      color: white;
+    }
+    .btn-login:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    }
+    .btn-register {
+      background: #f0f0f0;
+      color: #333;
+      border: 2px solid #ddd;
+    }
+    .btn-register:hover {
+      background: #e8e8e8;
+      border-color: #667eea;
+    }
+    .error-msg {
+      color: #e74c3c;
+      font-size: 14px;
+      margin-top: 15px;
+      text-align: center;
+      min-height: 20px;
+    }
+    .success-msg {
+      color: #27ae60;
+      font-size: 14px;
+      margin-top: 15px;
+      text-align: center;
+    }
+    .toggle-form {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+      color: #666;
+    }
+    .toggle-form a {
+      color: #667eea;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    .toggle-form a:hover {
+      color: #5568d3;
+    }
+    .loading {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1 id="formTitle">登入帳號</h1>
+  
+  <div class="form-group">
+    <label for="username">暱稱</label>
+    <input type="text" id="username" placeholder="輸入您的暱稱">
+  </div>
+  
+  <div class="form-group">
+    <label for="password">密碼</label>
+    <input type="password" id="password" placeholder="輸入密碼">
+  </div>
+  
+  <div class="button-group">
+    <button class="btn-login" id="submitBtn">登入</button>
+    <button class="btn-register" id="toggleBtn">註冊</button>
+  </div>
+  
+  <div class="error-msg" id="errorMsg"></div>
+  <div class="success-msg" id="successMsg"></div>
+  
+  <div class="toggle-form">
+    <span id="toggleText">沒有帳號？<a id="toggleLink">點我註冊</a></span>
+  </div>
+</div>
+
+<script>
+let isLogin = true;
+
+// 初始化
+document.getElementById('toggleBtn').addEventListener('click', toggleForm);
+document.getElementById('toggleLink').addEventListener('click', toggleForm);
+document.getElementById('submitBtn').addEventListener('click', handleSubmit);
+document.getElementById('password').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') handleSubmit();
+});
+
+function toggleForm() {
+  isLogin = !isLogin;
+  const title = document.getElementById('formTitle');
+  const submitBtn = document.getElementById('submitBtn');
+  const toggleText = document.getElementById('toggleText');
+  const toggleBtn = document.getElementById('toggleBtn');
+  
+  if (isLogin) {
+    title.textContent = '登入帳號';
+    submitBtn.textContent = '登入';
+    toggleBtn.textContent = '註冊';
+    toggleText.innerHTML = '沒有帳號？<a id="toggleLink">點我註冊</a>';
+    document.getElementById('toggleLink').addEventListener('click', toggleForm);
+  } else {
+    title.textContent = '註冊帳號';
+    submitBtn.textContent = '註冊';
+    toggleBtn.textContent = '登入';
+    toggleText.innerHTML = '已有帳號？<a id="toggleLink">點我登入</a>';
+    document.getElementById('toggleLink').addEventListener('click', toggleForm);
+  }
+  
+  clearMessages();
+}
+
+function handleSubmit() {
+  const name = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value.trim();
+  const errorDiv = document.getElementById('errorMsg');
+  const successDiv = document.getElementById('successMsg');
+  const submitBtn = document.getElementById('submitBtn');
+  
+  clearMessages();
+  
+  if (!name || !password) {
+    errorDiv.textContent = '請填寫暱稱與密碼';
+    return;
+  }
+  
+  // 禁用按鈕，顯示加載狀態
+  submitBtn.disabled = true;
+  submitBtn.classList.add('loading');
+  errorDiv.textContent = '處理中...';
+  
+  const action = isLogin ? 'loginPlayer' : 'registerPlayer';
+  
+  google.script.run
+    .withSuccessHandler(handleResponse)
+    .withFailureHandler((err) => {
+      errorDiv.textContent = '伺服器錯誤：' + err;
+      submitBtn.disabled = false;
+      submitBtn.classList.remove('loading');
+    })
+    [action](name, password);
+}
+
+function handleResponse(res) {
+  const errorDiv = document.getElementById('errorMsg');
+  const successDiv = document.getElementById('successMsg');
+  const submitBtn = document.getElementById('submitBtn');
+  
+  submitBtn.disabled = false;
+  submitBtn.classList.remove('loading');
+  
+  if (res.error) {
+    errorDiv.textContent = res.error;
+    return;
+  }
+  
+  // 登入/註冊成功
+  successDiv.textContent = isLogin ? '登入成功！進入遊戲中...' : '註冊成功！進入遊戲中...';
+  
+  // 儲存玩家資訊
+  localStorage.setItem('playId', res.playId);
+  localStorage.setItem('playerName', res.name || '');
+  
+  // 延遲後跳轉到遊戲頁面
+  setTimeout(() => {
+    window.location.href = '?page=index';
+  }, 1000);
+}
+
+function clearMessages() {
+  document.getElementById('errorMsg').textContent = '';
+  document.getElementById('successMsg').textContent = '';
+}
+</script>
+
+</body>
+</html>

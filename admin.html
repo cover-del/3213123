@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>狼人殺 Admin 管理</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Microsoft YaHei', Arial, sans-serif;
+      background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .header {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .header h1 {
+      color: #333;
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+    .login-area {
+      background: white;
+      border-radius: 12px;
+      padding: 40px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    .login-area h2 {
+      color: #333;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #555;
+      font-weight: 500;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    input:focus {
+      outline: none;
+      border-color: #e74c3c;
+      box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .btn-login {
+      background: #e74c3c;
+      color: white;
+    }
+    .btn-login:hover {
+      background: #c0392b;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+    }
+    .error-msg {
+      color: #e74c3c;
+      font-size: 14px;
+      margin-top: 10px;
+      text-align: center;
+    }
+    .admin-panel {
+      display: none;
+    }
+    .admin-panel.active {
+      display: block;
+    }
+    .admin-header {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .admin-header h2 {
+      color: #333;
+      margin: 0;
+    }
+    .logout-btn {
+      background: #95a5a6;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 6px;
+    }
+    .logout-btn:hover {
+      background: #7f8c8d;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .card h3 {
+      color: #333;
+      margin-bottom: 15px;
+      border-bottom: 2px solid #e74c3c;
+      padding-bottom: 10px;
+    }
+    .control-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .btn-secondary {
+      flex: 1;
+      background: #95a5a6;
+      color: white;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .btn-secondary:hover {
+      background: #7f8c8d;
+    }
+    .btn-danger {
+      flex: 1;
+      background: #e74c3c;
+      color: white;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .btn-danger:hover {
+      background: #c0392b;
+    }
+    .room-list {
+      max-height: 500px;
+      overflow-y: auto;
+    }
+    .room-item {
+      background: #f8f9fa;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-left: 4px solid #e74c3c;
+    }
+    .room-info {
+      flex: 1;
+    }
+    .room-id {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 5px;
+    }
+    .room-detail {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 3px;
+    }
+    .room-warning {
+      font-size: 12px;
+      color: #e74c3c;
+      font-weight: 600;
+    }
+    .room-delete-btn {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background 0.3s;
+    }
+    .room-delete-btn:hover {
+      background: #c0392b;
+    }
+    .empty-message {
+      text-align: center;
+      color: #999;
+      padding: 30px;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 6px;
+      text-align: center;
+    }
+    .stat-number {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+    .stat-label {
+      font-size: 13px;
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- 登入區域 -->
+  <div class="login-area" id="loginArea">
+    <h2>🔐 Admin 管理登入</h2>
+    <div class="form-group">
+      <label for="adminPassword">管理員密碼</label>
+      <input type="password" id="adminPassword" placeholder="輸入管理員密碼">
+    </div>
+    <button class="btn-login" onclick="loginAdmin()">登入</button>
+    <div class="error-msg" id="loginError"></div>
+  </div>
+
+  <!-- 管理面板 -->
+  <div class="admin-panel" id="adminPanel">
+    <!-- 頁頭 -->
+    <div class="admin-header">
+      <h2>🎮 房間管理面板</h2>
+      <button class="logout-btn" onclick="logoutAdmin()">登出</button>
+    </div>
+
+    <!-- 統計卡片 -->
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-number" id="totalRooms">0</div>
+        <div class="stat-label">總房間數</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="totalPlayers">0</div>
+        <div class="stat-label">在線玩家</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="inactiveRooms">0</div>
+        <div class="stat-label">閒置房間</div>
+      </div>
+    </div>
+
+    <!-- 房間管理 -->
+    <div class="card">
+      <h3>房間列表</h3>
+      <div class="control-buttons">
+        <button class="btn-secondary" onclick="refreshRooms()">🔄 刷新列表</button>
+        <button class="btn-danger" onclick="deleteAllRooms()">🗑️ 刪除全部</button>
+      </div>
+      <div class="room-list" id="roomList">
+        <div class="empty-message">載入中...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let isLoggedIn = false;
+
+// 初始化
+window.addEventListener('load', () => {
+  document.getElementById('adminPassword').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') loginAdmin();
+  });
+});
+
+function loginAdmin() {
+  const password = document.getElementById('adminPassword').value.trim();
+  const errorDiv = document.getElementById('loginError');
+  errorDiv.textContent = '';
+  
+  if (!password) {
+    errorDiv.textContent = '請輸入密碼';
+    return;
+  }
+  
+  google.script.run
+    .withSuccessHandler((res) => {
+      if (res.error) {
+        errorDiv.textContent = res.error;
+      } else {
+        isLoggedIn = true;
+        document.getElementById('loginArea').style.display = 'none';
+        document.getElementById('adminPanel').classList.add('active');
+        document.getElementById('adminPassword').value = '';
+        refreshRooms();
+        // 定時刷新
+        setInterval(refreshRooms, 5000);
+      }
+    })
+    .withFailureHandler((err) => {
+      errorDiv.textContent = '伺服器錯誤';
+    })
+    .adminLogin(password);
+}
+
+function logoutAdmin() {
+  isLoggedIn = false;
+  document.getElementById('adminPanel').classList.remove('active');
+  document.getElementById('loginArea').style.display = 'block';
+  document.getElementById('adminPassword').value = '';
+}
+
+function refreshRooms() {
+  if (!isLoggedIn) return;
+  
+  google.script.run
+    .withSuccessHandler((res) => {
+      const roomList = document.getElementById('roomList');
+      roomList.innerHTML = '';
+      
+      let totalPlayers = 0;
+      let inactiveCount = 0;
+      
+      if (!res || res.length === 0) {
+        roomList.innerHTML = '<div class="empty-message">目前沒有房間</div>';
+        document.getElementById('totalRooms').textContent = '0';
+        document.getElementById('totalPlayers').textContent = '0';
+        document.getElementById('inactiveRooms').textContent = '0';
+        return;
+      }
+      
+      res.forEach(room => {
+        totalPlayers += room.playerCount;
+        if (room.inactive) inactiveCount++;
+        
+        const div = document.createElement('div');
+        div.className = 'room-item';
+        
+        const lastActiveDate = new Date(room.lastActive);
+        const lastActiveStr = lastActiveDate.toLocaleString('zh-TW');
+        
+        let warningHtml = '';
+        if (room.inactive) {
+          warningHtml = '<div class="room-warning">⚠️ 超過 60 分鐘無活動</div>';
+        }
+        
+        div.innerHTML = `
+          <div class="room-info">
+            <div class="room-id">房號: ${room.id}</div>
+            <div class="room-detail">房主: ${room.hostName} | 玩家: ${room.playerCount} | 階段: ${room.phase}</div>
+            <div class="room-detail">最後活動: ${lastActiveStr}</div>
+            ${warningHtml}
+          </div>
+          <button class="room-delete-btn" onclick="deleteRoom('${room.id}')">刪除</button>
+        `;
+        roomList.appendChild(div);
+      });
+      
+      document.getElementById('totalRooms').textContent = res.length;
+      document.getElementById('totalPlayers').textContent = totalPlayers;
+      document.getElementById('inactiveRooms').textContent = inactiveCount;
+    })
+    .adminListRooms('1234'); // 使用預設密碼
+}
+
+function deleteRoom(roomId) {
+  if (!confirm(`確定要刪除房間 ${roomId} 嗎？`)) return;
+  
+  google.script.run
+    .withSuccessHandler((res) => {
+      if (res.error) {
+        alert('刪除失敗: ' + res.error);
+      } else {
+        alert(res.message || '房間已刪除');
+        refreshRooms();
+      }
+    })
+    .withFailureHandler((err) => {
+      alert('伺服器錯誤');
+    })
+    .adminDeleteRoom(roomId);
+}
+
+function deleteAllRooms() {
+  if (!confirm('確定要刪除所有房間嗎？此操作無法復原！')) return;
+  if (!confirm('再次確認：刪除所有房間？')) return;
+  
+  google.script.run
+    .withSuccessHandler((res) => {
+      if (res.error) {
+        alert('刪除失敗: ' + res.error);
+      } else {
+        alert(res.message || '所有房間已刪除');
+        refreshRooms();
+      }
+    })
+    .withFailureHandler((err) => {
+      alert('伺服器錯誤');
+    })
+    .adminDeleteAllRooms();
+}
+</script>
+
+</body>
+</html>
